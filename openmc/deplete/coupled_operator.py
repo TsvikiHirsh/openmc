@@ -364,6 +364,13 @@ class CoupledOperator(OpenMCOperator):
 
         """
 
+        # Synchronize material compositions with self.number before exporting.
+        # This ensures that the materials exported to XML match the compositions
+        # that will be used during transport solves, preventing BOL k-eff
+        # discrepancies when using the integrate method.
+        if comm.rank == 0:
+            self._synchronize_materials_with_number()
+
         # Create XML files
         if comm.rank == 0:
             self.model.geometry.export_to_xml()
@@ -383,6 +390,43 @@ class CoupledOperator(OpenMCOperator):
         materials = [openmc.lib.materials[int(i)] for i in self.burnable_mats]
 
         return super().initial_condition(materials)
+
+    def _synchronize_materials_with_number(self):
+        """Synchronize material compositions with self.number.
+
+        This method updates the nuclide compositions in self.materials to match
+        what's stored in self.number. This ensures that the materials exported
+        to XML during initial_condition() match the compositions that will be
+        used during subsequent transport solves via _update_materials().
+
+        This prevents BOL k-eff discrepancies that can occur when the original
+        materials contain nuclides not in the depletion chain or when the chain
+        includes nuclides not in the original materials.
+
+        """
+        for mat in self.materials:
+            mat_id = str(mat.id)
+            if mat_id not in self.number.materials:
+                continue
+
+            # Get all nuclides and their densities from self.number for this material
+            new_nuclides = []
+            for nuc in self.number.nuclides:
+                # Only include nuclides with cross section data (exclude decay-only)
+                if nuc not in self.nuclides_with_data:
+                    continue
+
+                # Get atom density in atoms/cm^3
+                atom_per_cc = self.number.get_atom_density(mat_id, nuc)
+
+                # Only include nuclides with positive density
+                if atom_per_cc > 0.0:
+                    # Convert to atom/b-cm for OpenMC
+                    atom_per_bcm = atom_per_cc * 1.0e-24
+                    new_nuclides.append((nuc, atom_per_bcm, 'ao'))
+
+            # Replace material nuclides with the synchronized list
+            mat._nuclides = new_nuclides
 
     def _generate_materials_xml(self):
         """Creates materials.xml from self.number.
