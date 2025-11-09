@@ -409,8 +409,10 @@ class CoupledOperator(OpenMCOperator):
             if mat_id not in self.number.materials:
                 continue
 
-            # Get all nuclides and their densities from self.number for this material
-            new_nuclides = []
+            # Clear existing nuclides from the material
+            mat._nuclides = []
+
+            # Re-add nuclides from self.number using the Material API
             for nuc in self.number.nuclides:
                 # Only include nuclides with cross section data (exclude decay-only)
                 if nuc not in self.nuclides_with_data:
@@ -423,10 +425,8 @@ class CoupledOperator(OpenMCOperator):
                 if atom_per_cc > 0.0:
                     # Convert to atom/b-cm for OpenMC
                     atom_per_bcm = atom_per_cc * 1.0e-24
-                    new_nuclides.append((nuc, atom_per_bcm, 'ao'))
-
-            # Replace material nuclides with the synchronized list
-            mat._nuclides = new_nuclides
+                    # Use the Material API to add nuclides properly
+                    mat.add_nuclide(nuc, atom_per_bcm, 'ao')
 
     def _generate_materials_xml(self):
         """Creates materials.xml from self.number.
