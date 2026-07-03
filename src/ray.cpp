@@ -132,6 +132,10 @@ void Ray::trace(double max_distance)
     max -= distance;
 
     if (max == 0.0) {
+      // The ray was cut short by max_distance, so only account for the
+      // distance actually traveled within this cell rather than the full
+      // distance to the next boundary
+      boundary().distance() = distance;
       update_distance();
       break;
     }

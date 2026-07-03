@@ -41,7 +41,9 @@ void score_point_tally_impl(
     auto p = ParticleRay(r, u, type, time, E);
     p.Ray::trace(total_distance);
     double distance = p.traversal_distance();
-    if (distance < total_distance)
+    // Use a small tolerance to avoid dropping rays that reached the detector
+    // but accumulated floating-point roundoff along the way
+    if (distance < total_distance - TINY_BIT)
       continue;
     double mfp = p.traversal_mfp();
     double attenuation = std::exp(-mfp);
