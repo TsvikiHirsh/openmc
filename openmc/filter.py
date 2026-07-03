@@ -796,6 +796,16 @@ class ParticleFilter(Filter):
 class PointFilter(Filter):
     """Bins tally events based on point detectors.
 
+    Point detectors use a next-event estimator to score the flux at one or
+    more points. Both neutrons and photons are supported. For photons, the
+    expected contribution to each detector is scored at the source site and
+    at every emission event (coherent and incoherent scattering, fluorescence
+    from atomic relaxation, positron annihilation, and photon production from
+    neutron reactions). Note that bremsstrahlung photons produced with the
+    thick-target bremsstrahlung (TTB) approximation are emitted in the
+    direction of the electron, so their first-flight contribution to the
+    detectors cannot be scored.
+
     Parameters
     ----------
     bins : sequence of tuple[tuple[Real, Real, Real], Real]

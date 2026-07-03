@@ -12,6 +12,7 @@
 #include "openmc/random_lcg.h"
 #include "openmc/search.h"
 #include "openmc/settings.h"
+#include "openmc/tallies/next_event_scoring.h"
 
 #include "openmc/tensor.h"
 
@@ -804,6 +805,9 @@ void PhotonInteraction::atomic_relaxation(int i_shell, Particle& p) const
     if (shell.transitions.empty()) {
       Direction u = isotropic_direction(p.current_seed());
       double E = shell.binding_energy;
+      if (!model::active_point_tallies.empty()) {
+        score_point_tally_isotropic_photon(p, E, 1.0);
+      }
       p.create_secondary(p.wgt(), u, E, ParticleType::photon());
       continue;
     }
@@ -838,6 +842,9 @@ void PhotonInteraction::atomic_relaxation(int i_shell, Particle& p) const
       // Radiative transition -- get X-ray energy
 
       // Create fluorescent photon
+      if (!model::active_point_tallies.empty()) {
+        score_point_tally_isotropic_photon(p, transition.energy, 1.0);
+      }
       p.create_secondary(p.wgt(), u, transition.energy, ParticleType::photon());
     }
   }

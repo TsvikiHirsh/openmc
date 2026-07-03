@@ -595,6 +595,14 @@ void Tally::set_scores(const vector<std::string>& scores)
     if (surface_present || meshsurface_present)
       fatal_error(
         "Cannot use surface or mesh-surface filters with PointFilter.");
+    if (settings::photon_transport &&
+        settings::electron_treatment == ElectronTreatment::TTB)
+      warning(
+        "Bremsstrahlung photons produced by the thick-target bremsstrahlung "
+        "(TTB) approximation are emitted in the direction of the electron, so "
+        "their first-flight contribution to point detectors is not scored. "
+        "Point detector results may be underestimated in problems where "
+        "bremsstrahlung is significant.");
   }
 
   // Iterate over the given scores.

@@ -324,6 +324,9 @@ void sample_photon_reaction(Particle& p)
   // Coherent (Rayleigh) scattering
   prob += micro.coherent;
   if (prob > cutoff) {
+    if (!model::active_point_tallies.empty()) {
+      score_point_tally_coherent(p, i_element);
+    }
     p.mu() = element.rayleigh_scatter(alpha, p.current_seed());
     p.u() = rotate_angle(p.u(), p.mu(), nullptr, p.current_seed());
     p.event() = TallyEvent::SCATTER;
@@ -334,6 +337,9 @@ void sample_photon_reaction(Particle& p)
   // Incoherent (Compton) scattering
   prob += micro.incoherent;
   if (prob > cutoff) {
+    if (!model::active_point_tallies.empty()) {
+      score_point_tally_incoherent(p, i_element);
+    }
     double alpha_out;
     int i_shell;
     element.compton_scatter(
@@ -492,6 +498,12 @@ void sample_positron_reaction(Particle& p)
   if (settings::electron_treatment == ElectronTreatment::TTB) {
     double E_lost;
     thick_target_bremsstrahlung(p, &E_lost);
+  }
+
+  // Score the expected point tally contribution from the two isotropically
+  // emitted annihilation photons
+  if (!model::active_point_tallies.empty()) {
+    score_point_tally_isotropic_photon(p, MASS_ELECTRON_EV, 2.0);
   }
 
   // Sample angle isotropically
@@ -1246,6 +1258,10 @@ void sample_secondary_photons(Particle& p, int i_nuclide)
     double wgt = photon_wgt;
     if (settings::run_mode == RunMode::EIGENVALUE && !is_fission(rx->mt_)) {
       wgt *= simulation::keff;
+    }
+
+    if (!model::active_point_tallies.empty()) {
+      score_point_tally_photon_production(p, i_nuclide, *rx, i_product, wgt);
     }
 
     // Create the secondary photon

@@ -56,6 +56,9 @@ public:
 
   void atomic_relaxation(int i_shell, Particle& p) const;
 
+  void compton_doppler(
+    double alpha, double mu, double* E_out, int* i_shell, uint64_t* seed) const;
+
   // Data members
   std::string name_; //!< Name of element, e.g. "Zr"
   int Z_;            //!< Atomic number
@@ -110,9 +113,6 @@ public:
   static constexpr int MAX_STACK_SIZE =
     7; //!< maximum possible size of atomic relaxation stack
 private:
-  void compton_doppler(
-    double alpha, double mu, double* E_out, int* i_shell, uint64_t* seed) const;
-
   //! Calculate the maximum size of the vacancy stack in atomic relaxation
   //
   //! These helper functions use the subshell transition data to calculate the

@@ -26,6 +26,26 @@ void score_point_tally_sab(Particle& p, int i_nuclide, const ThermalData& sab,
 
 void score_point_tally_source(SourceSite& site, int source_index);
 
+//! Score photon point tallies for coherent (Rayleigh) scattering
+void score_point_tally_coherent(Particle& p, int i_element);
+
+//! Score photon point tallies for incoherent (Compton) scattering
+void score_point_tally_incoherent(Particle& p, int i_element);
+
+//! Score photon point tallies for isotropically emitted photons
+//! (fluorescence from atomic relaxation, positron annihilation)
+//
+//! \param[in] p Particle at the emission site (its weight and position are
+//!   used; the emitted particle is always a photon)
+//! \param[in] E Energy of the emitted photon(s)
+//! \param[in] multiplicity Number of photons emitted isotropically
+void score_point_tally_isotropic_photon(
+  Particle& p, double E, double multiplicity);
+
+//! Score photon point tallies for photons produced by neutron reactions
+void score_point_tally_photon_production(
+  Particle& p, int i_nuclide, const Reaction& rx, int i_product, double wgt);
+
 template<typename PDF>
 void score_point_tally_impl(
   const Position r, const ParticleType type, const double time, PDF pdffunc)
