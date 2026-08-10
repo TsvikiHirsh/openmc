@@ -489,6 +489,12 @@ void process_charged_secondary(
   }
 
   if (type == ParticleType::positron()) {
+    // Score the expected point tally contribution from the two isotropically
+    // emitted annihilation photons
+    if (!model::active_point_tallies.empty()) {
+      score_point_tally_isotropic_photon(p, MASS_ELECTRON_EV, 2.0);
+    }
+
     Direction photon_u = isotropic_direction(p.current_seed());
     p.create_secondary(
       p.wgt(), photon_u, MASS_ELECTRON_EV, ParticleType::photon());
